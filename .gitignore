@@ -1,0 +1,17 @@
+node_modules/
+.next/
+dist/
+build/
+.env
+*.env.local
+.DS_Store
+*.pem
+npm-debug.log*
+yarn-error.log*
+prisma/*.db
+coverage/
+.vercel
+*.tsbuildinfo
+prometheus/data/
+postgres_data/
+redis_data/

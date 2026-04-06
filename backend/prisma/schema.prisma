@@ -1,0 +1,86 @@
+// backend/prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  password     String
+  name         String?
+  role         Role     @default(USER)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  urls         Url[]
+
+  @@map("users")
+}
+
+model Url {
+  id           String    @id @default(cuid())
+  shortCode    String    @unique
+  originalUrl  String
+  title        String?
+  userId       String?
+  customDomain String?
+  expiresAt    DateTime?
+  isActive     Boolean   @default(true)
+  clickCount   Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  clicks       Click[]
+  analytics    DailyAnalytics[]
+
+  @@index([shortCode])
+  @@index([userId])
+  @@map("urls")
+}
+
+model Click {
+  id          String   @id @default(cuid())
+  urlId       String
+  ip          String?
+  userAgent   String?
+  country     String?
+  city        String?
+  referer     String?
+  browser     String?
+  os          String?
+  device      String?
+  timestamp   DateTime @default(now())
+
+  url         Url      @relation(fields: [urlId], references: [id], onDelete: Cascade)
+
+  @@index([urlId])
+  @@index([timestamp])
+  @@map("clicks")
+}
+
+model DailyAnalytics {
+  id        String   @id @default(cuid())
+  urlId     String
+  date      DateTime @db.Date
+  clicks    Int      @default(0)
+  uniqueIps Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  url       Url      @relation(fields: [urlId], references: [id], onDelete: Cascade)
+
+  @@unique([urlId, date])
+  @@index([date])
+  @@map("daily_analytics")
+}
